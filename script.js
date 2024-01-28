@@ -25,8 +25,23 @@ function generateSudoku(difficulty) {
 }
 
 function generateBoard(diff) {
+	let val_board = [];
+	let n = 0;
 
-
+	for (; val_board.length <= 9;) {
+		let i = 0;
+		let row = [];
+		for (; row.length <= 9;) {
+			let rand_int = Math.floor(Math.random() * 9) + 1;
+			if (row.includes(rand_int) == false) {
+				row.push(rand_int);
+				i++;
+			}
+		}
+		val_board.push(row);
+		n++;
+	}
+	return val_board;
 }
 
 // Function to check the solution
