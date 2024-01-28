@@ -26,25 +26,10 @@ function generateSudoku(difficulty) {
 
 function generateBoard(diff) {
 	let val_board = [];
-
-     // Function to check if a number is present in a column
-    const isInColumn = (column, num) => {
-        // console.log("column input " + column + num);
-        for (let i = 0; i < val_board.length; i++) {
-            // Check if column index is within bounds
-            if (
-                val_board[i] &&
-                val_board[i][column] === num
-            ) {
-                return true;
-            }
-        }
-        return false;
-    };
-    
-    // Function to check if a number is present in a 3x3 square
+	
+	// Function to check if a number is present in a 3x3 square
     const isInSquare = (startRow, startCol, num) => {
-        // console.log("square input " + startRow + startCol + num);
+        console.log("square input " + startRow + startCol + num);
         for (let i = 0; i < 3; i++) {
             for (let j = 0; j < 3; j++) {
                 // Check if indices are within bounds
@@ -52,13 +37,28 @@ function generateBoard(diff) {
                     val_board[startRow + i] &&
                     val_board[startRow + i][startCol + j] === num
                 ) {
-                    return true;
+                    return false;
                 }
             }
         }
 
-        return false;
-    };
+        return true;
+    };	
+
+	 // Function to check if a number is present in a column
+    const isInColumn = (column, num) => {
+        console.log("column input " + column + num);
+        for (let i = 0; i < val_board.length; i++) {
+            // Check if column index is within bounds
+            if (
+                val_board[i] &&
+                val_board[i][column] === num
+            ) {
+                return false;
+            }
+        }
+        return true;
+    };	
 
     // generate first row
 	let row = [];
@@ -74,26 +74,27 @@ function generateBoard(diff) {
 	while (val_board.length < 9) {
         let row = [];
         for (let i = 0; i < 9; i++) {
-            console.log("i " + i);
+            // console.log("i " + i);
             let rand_int;
             do {
                 rand_int = Math.floor(Math.random() * 9) + 1;
-                console.log("rand int " + rand_int)
+                
             } while (
-                row.includes(rand_int)  /*||
-                 isInColumn(i, rand_int) ||
+                row.includes(rand_int)  ||
+                isInColumn(i, rand_int) ||
                 isInSquare(
                     Math.floor(val_board.length / 3) * 3,
                     Math.floor(i / 3) * 3,
                     rand_int
-                )*/
+                )
             );
             row.push(rand_int);
         }
         val_board.push(row);
     }
 
-    return val_board;
+    return val_board;	
+
 }
 
 // Function to check the solution
