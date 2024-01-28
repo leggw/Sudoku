@@ -27,12 +27,23 @@ function generateSudoku(difficulty) {
 function generateBoard(diff) {
 	let val_board = [];
 	let n = 0;
+	let row = [];
+
+
+	for (;row.length <= 9;) {
+		let rand_int = Math.floor(Math.random() * 9 + 1);
+		if (row.includes(rand_int) == false) {
+			row.push(rand_int);
+		}
+	}
+	
+	val_board.push(row);
 
 	for (; val_board.length <= 9;) {
 		let i = 0;
 		let row = [];
-		for (; row.length <= 9;) {
-			let rand_int = Math.floor(Math.random() * 9) + 1;
+		for (; row.length <= 8;) {
+			let rand_int = Math.floor(Math.random() * 9 + 1);
 			if (row.includes(rand_int) == false) {
 				row.push(rand_int);
 				i++;
@@ -40,6 +51,7 @@ function generateBoard(diff) {
 		}
 		val_board.push(row);
 		n++;
+		console.log(row);
 	}
 	return val_board;
 }
