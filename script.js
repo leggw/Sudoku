@@ -210,11 +210,11 @@ function emptyCellCoords (startingBoard) {
 function generateSudoku(difficulty) {
 	let diff = 0;
 	if (difficulty.toLowerCase() == "easy") {
-		diff = 38;
+		diff = 43;
 	} else if (difficulty.toLowerCase() == "medium") {
-		diff = 36;
+		diff = 45;
 	} else if (difficulty.toLowerCase() == "hard") {
-		diff = 32;
+		diff = 49;
 	}
 
     const [removedVals, startingBoard, solvedBoard] = newStartingBoard(diff);
@@ -229,6 +229,15 @@ function generateSudoku(difficulty) {
 		for (let j = 0; j < 9; j++) {
 			const cell = document.createElement('div');
 			cell.classList.add('cell');
+
+			// add border
+			if (i === 2 || i === 5) {
+				cell.classList.add('darker-bottom-border');
+			}
+			if (j === 2 || j === 5) {
+				cell.classList.add('darker-right-border');
+			}
+
 			const value = startingBoard[i][j] !== 0 ? startingBoard[i][j] : '';
 			cell.textContent = value;
 			cell.dataset.row = i;
