@@ -12,7 +12,18 @@
         <h1>Sudoku Game</h1>
         <div id="mistake-counter">Mistakes: 0</div>
         <div id="board-container"></div>
-        <button onclick="generateSudoku()">Generate New Game</button>
+        <div id="number-buttons">
+            <button data-number="1">1</button>
+            <button data-number="2">2</button>
+            <button data-number="3">3</button>
+            <button data-number="4">4</button>
+            <button data-number="5">5</button>
+            <button data-number="6">6</button>
+            <button data-number="7">7</button>
+            <button data-number="8">8</button>
+            <button data-number="9">9</button>
+        </div>
+        <button onclick="startGame()">Generate New Game</button>
         <button onclick="checkSolution()">Check Solution</button>
     </div>
     <script src="script.js"></script>

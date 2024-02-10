@@ -11,7 +11,6 @@ const BLANK_BOARD = [
 ]
   
 let counter
-let mistakeCounter = 0;
 const numArray = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 function shuffle( array ) {
@@ -206,6 +205,20 @@ function emptyCellCoords (startingBoard) {
 	return listOfEmptyCells
 }
 
+let mistakeCounter = 0;
+let selectedCell = null;
+let selectedNumber = null; // Initialize with null
+
+// document.getElementById('number-buttons').addEventListener('click', function (event) {
+// 	const button = event.target;
+// 	if (button.tagName === 'BUTTON' && selectedCell !== null) {
+// 		selectedNumber = parseInt(button.dataset.number, 10);
+// 		fillCell(selectedCell, selectedNumber, solvedBoard[selectedCell.dataset.row]
+// 			[selectedCell.dataset.col], startingBoard[selectedCell.dataset.row]
+// 			[selectedCell.dataset.col], mistakeCounter);
+// 	}
+// });
+
 // generate the Sudoku board based on difficulty
 function generateSudoku(difficulty) {
 	let diff = 0;
@@ -223,7 +236,7 @@ function generateSudoku(difficulty) {
     const boardContainer = document.getElementById('board-container');
     boardContainer.innerHTML = '';
 
-	// mistakeCounter = 0;
+	const mistakeCounter = {value: 0};
 
     for (let i = 0; i < 9; i++) {
 		for (let j = 0; j < 9; j++) {
@@ -243,17 +256,45 @@ function generateSudoku(difficulty) {
 			cell.dataset.row = i;
 			cell.dataset.col = j;
 			cell.contentEditable = startingBoard[i][j] === 0 ? 'true' : 'false'; // Ensure it's a string
-			console.log(mistakeCounter);
+
+			// cell.addEventListener('click', function () {
+			// 	if (selectedCell !== null) {
+			// 		selectedCell.classList.remove('selected-cell');
+			// 	}
 			
+			// 	selectedCell = this;
+			// 	selectedCell.classList.add('selected-cell');
+			// });
+
+			// Add an event listener for input changes
+            cell.addEventListener('click', function () {
+				if (selectedNumber !== null) {
+					fillCell(this, selectedNumber, solvedBoard[i][j], startingBoard[i][j], mistakeCounter);
+				}
+			});
+
 			// Add an event listener for input changes
 			cell.addEventListener('input', function() {
 				checkInput(this, solvedBoard[i][j], startingBoard[i][j], mistakeCounter);
 			});
 
-
 			boardContainer.appendChild(cell);
 		}
 	}
+}
+
+function fillCell(cell, number, solvedValue, initialValue, mistakeCounter) {
+    // Check if the cell is editable before filling
+    if (cell.contentEditable === 'true') {
+        cell.textContent = number;
+
+        // Call checkInput to handle mistake counter logic
+        checkInput(cell, solvedValue, initialValue, mistakeCounter);
+
+        // Clear the selected cell and remove the highlight
+        // selectedCell.classList.remove('selected-cell');
+        // selectedCell = null;
+    }
 }
 
 
@@ -263,7 +304,7 @@ function checkInput(cell, correctValue, initialValue, mistakeCounter) {
     if (userInput !== '' && userInput !== correctValue.toString()) {
         // Incorrect input
         cell.style.color = 'red';
-        mistakeCounter++;
+        mistakeCounter.value++;
         updateMistakeCounter(mistakeCounter);
     } else {
         // Correct input or empty cell
@@ -273,8 +314,11 @@ function checkInput(cell, correctValue, initialValue, mistakeCounter) {
 
 function updateMistakeCounter(mistakeCounter) {
     const mistakeCounterElement = document.getElementById('mistake-counter');
-    mistakeCounterElement.textContent = `Mistakes: ${mistakeCounter}`;
+    mistakeCounterElement.textContent = `Mistakes: ${mistakeCounter.value}`;
 }
+
+// Initialize mistakeCounter
+updateMistakeCounter(mistakeCounter);
 
 // Function to prompt the user for difficulty and start the game
 function startGame() {
@@ -282,6 +326,7 @@ function startGame() {
     
     if (difficulty && ['easy', 'medium', 'hard'].includes(difficulty.toLowerCase())) {
         generateSudoku(difficulty.toLowerCase());
+		mistakeCounter = 0;
     } else {
         alert("Invalid difficulty level. Please choose easy, medium, or hard.");
     }
