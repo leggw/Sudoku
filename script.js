@@ -205,7 +205,7 @@ function emptyCellCoords (startingBoard) {
 	return listOfEmptyCells
 }
 
-let mistakeCounter = 0;
+let mistakeCounter = {value: 0};
 let selectedCell = null;
 let selectedNumber = null; // Initialize with null
 
@@ -278,6 +278,10 @@ function generateSudoku(difficulty) {
 				checkInput(this, solvedBoard[i][j], startingBoard[i][j], mistakeCounter);
 			});
 
+			cell.addEventListener('input', function() {
+				checkSolved(this, solvedBoard, startingBoard);	
+			});
+
 			boardContainer.appendChild(cell);
 		}
 	}
@@ -319,6 +323,12 @@ function updateMistakeCounter(mistakeCounter) {
 
 // Initialize mistakeCounter
 updateMistakeCounter(mistakeCounter);
+
+function checkSolved(finBoard, actBoard) {
+	if (finBoard === actBoard) {
+		const finish = prompt("");
+	}
+}
 
 // Function to prompt the user for difficulty and start the game
 function startGame() {
