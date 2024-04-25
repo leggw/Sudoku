@@ -5,8 +5,10 @@ body {
     justify-content: center;
     height: 100vh;
     margin: 0;
-	background-color: #631709;
-	color: #004d09;
+	background-image: linear-gradient(#4775d1, #cc6600, #4d1919);
+    background-size: 20% 20% 60%;
+    background-repeat: no-repeat;
+	color: #b3ffff;
 
     /*background-color: #142952;
     color: #00ff00;*/
@@ -26,7 +28,7 @@ h1 {
     grid-template-columns: repeat(9, 40px);
     grid-template-rows: repeat(9, 40px);
     gap: 1px;
-    background-color: #e8543a;
+    background-color: #4775d1;
 }
 
 .cell {
