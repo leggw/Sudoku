@@ -1,3 +1,7 @@
+// Inspired from:
+// backtracking sudoku algorithm: https://lisperator.net/blog/javascript-sudoku-solver/
+// sudoku solving (python): http://norvig.com/sudoku.html
+
 const BLANK_BOARD = [
 	[0, 0, 0, 0, 0, 0, 0, 0, 0],
 	[0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -32,13 +36,13 @@ const colSafe = (puzzleArray, emptyCell, num) => {
 }
   
 const boxSafe = (puzzleArray, emptyCell, num) => {
-	boxStartRow = emptyCell.rowIndex - (emptyCell.rowIndex % 3) // Define top left corner of box region for empty cell
+	boxStartRow = emptyCell.rowIndex - (emptyCell.rowIndex % 3) 
 	boxStartCol = emptyCell.colIndex - (emptyCell.colIndex % 3)
 	let safe = true
   
 	for ( boxRow of [0,1,2] ) {  // Each box region has 3 rows
 		for ( boxCol of [0,1,2] ) { // Each box region has 3 columns
-			if ( puzzleArray[boxStartRow + boxRow][boxStartCol + boxCol] == num ) { // Num is present in box region?
+			if ( puzzleArray[boxStartRow + boxRow][boxStartCol + boxCol] == num ) { 
 				safe = false // If number is found, it is not safe to place
 			}
 		}
@@ -244,10 +248,10 @@ function generateSudoku(difficulty) {
 			cell.classList.add('cell');
 
 			// add border
-			if (i === 2 || i === 5) {
+			if (i === 2 || i === 5 || i == 8) {
 				cell.classList.add('darker-bottom-border');
 			}
-			if (j === 2 || j === 5) {
+			if (j === 2 || j === 5 || j == 8) {
 				cell.classList.add('darker-right-border');
 			}
 
@@ -266,7 +270,7 @@ function generateSudoku(difficulty) {
 			// 	selectedCell.classList.add('selected-cell');
 			// });
 
-			// Add an event listener for input changes
+			// event listener for input changes
             cell.addEventListener('click', function () {
 				if (selectedNumber !== null) {
 					fillCell(this, selectedNumber, solvedBoard[i][j], startingBoard[i][j], mistakeCounter);
@@ -294,10 +298,6 @@ function fillCell(cell, number, solvedValue, initialValue, mistakeCounter) {
 
         // Call checkInput to handle mistake counter logic
         checkInput(cell, solvedValue, initialValue, mistakeCounter);
-
-        // Clear the selected cell and remove the highlight
-        // selectedCell.classList.remove('selected-cell');
-        // selectedCell = null;
     }
 }
 

@@ -32,8 +32,8 @@ h1 {
 }
 
 .cell {
-    width: 40px;
-    height: 40px;
+    width: 39px;
+    height: 39px;
     border: 1px solid #000;
     display: flex;
     align-items: center;
