@@ -248,10 +248,10 @@ function generateSudoku(difficulty) {
 			cell.classList.add('cell');
 
 			// add border
-			if (i === 2 || i === 5 || i == 8) {
+			if (i === 2 || i === 5) {
 				cell.classList.add('darker-bottom-border');
 			}
-			if (j === 2 || j === 5 || j == 8) {
+			if (j === 2 || j === 5) {
 				cell.classList.add('darker-right-border');
 			}
 
