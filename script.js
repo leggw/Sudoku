@@ -134,8 +134,6 @@ const pokeHoles = (startingBoard, holes) => {
 function newStartingBoard  (holes) {
 	// Reset global iteration counter to 0 and Try to generate a new game. 
 	// If counter reaches its maximum limit in the fillPuzzle function, current attemp will abort
-	// To prevent the abort from crashing the script, the error is caught and used to re-run
-	// this function
 	try {
 	  counter = 0
 	  let solvedBoard = newSolvedBoard()  
@@ -183,8 +181,8 @@ function fillFromArray(startingBoard, emptyCellArray) {
 	return false
 }
   
-  // As numbers get placed, not all of the initial cells are still empty.
-  // This will find the next still empty cell in the list
+// As numbers get placed, not all of the initial cells are still empty.
+// This will find the next still empty cell in the list
 function nextStillEmptyCell (startingBoard, emptyCellArray) {
 	for (coords of emptyCellArray) {
 	  if (startingBoard[ coords.row ][ coords.col ] === 0) return {rowIndex: coords.row, colIndex: coords.col}
@@ -248,10 +246,10 @@ function generateSudoku(difficulty) {
 			cell.classList.add('cell');
 
 			// add border
-			if (i === 2 || i === 5 || i == 8) {
+			if (i === 2 || i === 5) {
 				cell.classList.add('darker-bottom-border');
 			}
-			if (j === 2 || j === 5 || j == 8) {
+			if (j === 2 || j === 5) {
 				cell.classList.add('darker-right-border');
 			}
 
@@ -260,15 +258,6 @@ function generateSudoku(difficulty) {
 			cell.dataset.row = i;
 			cell.dataset.col = j;
 			cell.contentEditable = startingBoard[i][j] === 0 ? 'true' : 'false'; // Ensure it's a string
-
-			// cell.addEventListener('click', function () {
-			// 	if (selectedCell !== null) {
-			// 		selectedCell.classList.remove('selected-cell');
-			// 	}
-			
-			// 	selectedCell = this;
-			// 	selectedCell.classList.add('selected-cell');
-			// });
 
 			// event listener for input changes
             cell.addEventListener('click', function () {
@@ -339,6 +328,7 @@ function startGame() {
 		mistakeCounter = 0;
     } else {
         alert("Invalid difficulty level. Please choose easy, medium, or hard.");
+		startGame();
     }
 }
 
