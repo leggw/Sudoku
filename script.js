@@ -315,7 +315,7 @@ updateMistakeCounter(mistakeCounter);
 
 function checkSolved(finBoard, actBoard) {
 	if (finBoard === actBoard) {
-		const finish = prompt("");
+		const finish = prompt("congrats");
 	}
 }
 
