@@ -1,6 +1,7 @@
 body {
     font-family: 'Menlo', Consolas, 'Arial', sans-serif;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     height: 100vh;
@@ -10,8 +11,6 @@ body {
     background-repeat: no-repeat;
 	color: #b3ffff;
 
-    /*background-color: #142952;
-    color: #00ff00;*/
 }
 
 h1 {
@@ -63,4 +62,17 @@ h1 {
 button {
     font-size: 16px;
     margin: 5px;
+}
+
+a {
+    text-decoration: underline;
+    color: #b3ffff;
+}
+
+.footer {
+    /* position: fixed; */
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }

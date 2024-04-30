@@ -211,29 +211,9 @@ let mistakeCounter = {value: 0};
 let selectedCell = null;
 let selectedNumber = null; // Initialize with null
 
-// document.getElementById('number-buttons').addEventListener('click', function (event) {
-// 	const button = event.target;
-// 	if (button.tagName === 'BUTTON' && selectedCell !== null) {
-// 		selectedNumber = parseInt(button.dataset.number, 10);
-// 		fillCell(selectedCell, selectedNumber, solvedBoard[selectedCell.dataset.row]
-// 			[selectedCell.dataset.col], startingBoard[selectedCell.dataset.row]
-// 			[selectedCell.dataset.col], mistakeCounter);
-// 	}
-// });
-
 // generate the Sudoku board based on difficulty
 function generateSudoku(difficulty) {
-	let diff = 0;
-	if (difficulty.toLowerCase() == "easy") {
-		diff = 43;
-	} else if (difficulty.toLowerCase() == "medium") {
-		diff = 45;
-	} else if (difficulty.toLowerCase() == "hard") {
-		diff = 49;
-	}
-
-    const [removedVals, startingBoard, solvedBoard] = newStartingBoard(diff);
-	
+    const [removedVals, startingBoard, solvedBoard] = newStartingBoard(difficulty);
 
     const boardContainer = document.getElementById('board-container');
     boardContainer.innerHTML = '';
@@ -259,14 +239,28 @@ function generateSudoku(difficulty) {
 			cell.dataset.col = j;
 			cell.contentEditable = startingBoard[i][j] === 0 ? 'true' : 'false'; // Ensure it's a string
 
-			// event listener for input changes
+			// event listener for input changes from number buttons
             cell.addEventListener('click', function () {
+				const numberButtons = document.querySelectorAll('#number-buttons button');
+				numberButtons.forEach(button => {
+    				button.addEventListener('click', function() {
+        				selectedNumber = parseInt(this.dataset.number);
+    				});
+				});
 				if (selectedNumber !== null) {
 					fillCell(this, selectedNumber, solvedBoard[i][j], startingBoard[i][j], mistakeCounter);
 				}
 			});
 
-			// Add an event listener for input changes
+			function fillCell(cell, solvedValue, initialValue, mistakeCounter) {
+				if (cell.contentEditable === 'true' && selectedNumber !== null) {
+					cell.textContent = selectedNumber;
+					checkInput(cell, solvedValue, initialValue, mistakeCounter); // Check input after filling
+					selectedNumber = null; // Reset selectedNumber after filling
+				}
+			}
+
+			// Add an event listener for input changes from elsewhere (keyboard)
 			cell.addEventListener('input', function() {
 				checkInput(this, solvedBoard[i][j], startingBoard[i][j], mistakeCounter);
 			});
@@ -322,9 +316,18 @@ function checkSolved(finBoard, actBoard) {
 // Function to prompt the user for difficulty and start the game
 function startGame() {
     const difficulty = prompt("Choose a difficulty level: easy, medium, or hard");
+	
+	let diff = 0;
+	if (difficulty.toLowerCase() == "easy") {
+		diff = 43;
+	} else if (difficulty.toLowerCase() == "medium") {
+		diff = 45;
+	} else if (difficulty.toLowerCase() == "hard") {
+		diff = 49;
+	}
     
     if (difficulty && ['easy', 'medium', 'hard'].includes(difficulty.toLowerCase())) {
-        generateSudoku(difficulty.toLowerCase());
+        generateSudoku(diff);
 		mistakeCounter = 0;
     } else {
         alert("Invalid difficulty level. Please choose easy, medium, or hard.");
