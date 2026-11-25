@@ -1,339 +1,255 @@
-// Inspired from:
-// backtracking sudoku algorithm: https://lisperator.net/blog/javascript-sudoku-solver/
-// sudoku solving (python): http://norvig.com/sudoku.html
+// Backtracking references:
+// https://lisperator.net/blog/javascript-sudoku-solver/
+// https://norvig.com/sudoku.html
 
-const BLANK_BOARD = [
-	[0, 0, 0, 0, 0, 0, 0, 0, 0],
-	[0, 0, 0, 0, 0, 0, 0, 0, 0],
-	[0, 0, 0, 0, 0, 0, 0, 0, 0],
-	[0, 0, 0, 0, 0, 0, 0, 0, 0],
-	[0, 0, 0, 0, 0, 0, 0, 0, 0],
-	[0, 0, 0, 0, 0, 0, 0, 0, 0],
-	[0, 0, 0, 0, 0, 0, 0, 0, 0],
-	[0, 0, 0, 0, 0, 0, 0, 0, 0],
-	[0, 0, 0, 0, 0, 0, 0, 0, 0]
-];
-  
-let counter;
-const numArray = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+"use strict";
 
-function shuffle( array ) {
-	let newArray = [...array];
-	for ( let i = newArray.length - 1; i > 0; i-- ) {
-		const j = Math.floor( Math.random() * ( i + 1 ) );
-		[ newArray[ i ], newArray[ j ] ] = [ newArray[ j ], newArray[ i ] ];
-	}
-	return newArray;
+const SIZE = 9;
+const BOX_SIZE = 3;
+const DIGITS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+const EMPTY_COUNTS = { easy: 43, medium: 45, hard: 49 };
+const POSITIONS = Array.from({ length: SIZE * SIZE }, (_, index) => index);
+
+function shuffle(values) {
+    const result = [...values];
+    for (let index = result.length - 1; index > 0; index--) {
+        const other = Math.floor(Math.random() * (index + 1));
+        [result[index], result[other]] = [result[other], result[index]];
+    }
+    return result;
 }
 
-// check if row is safe
-const rowSafe = (puzzleArray, emptyCell, num) => {
-	// -1 is return value of .find() if value not found
-	return puzzleArray[ emptyCell.rowIndex ].indexOf(num) == -1;
-}
-const colSafe = (puzzleArray, emptyCell, num) => {
-	return !puzzleArray.some(row => row[ emptyCell.colIndex ] == num );
-}
-  
-const boxSafe = (puzzleArray, emptyCell, num) => {
-	boxStartRow = emptyCell.rowIndex - (emptyCell.rowIndex % 3);
-	boxStartCol = emptyCell.colIndex - (emptyCell.colIndex % 3);
-	let safe = true;
-  
-	for ( boxRow of [0,1,2] ) {  // Each box region has 3 rows
-		for ( boxCol of [0,1,2] ) { // Each box region has 3 columns
-			if ( puzzleArray[boxStartRow + boxRow][boxStartCol + boxCol] == num ) { 
-				safe = false; // If number is found, it is not safe to place
-			}
-		}
-	}
-	return safe;
+function rowOf(index) {
+    return Math.floor(index / SIZE);
 }
 
-const safeToPlace = ( puzzleArray, emptyCell, num ) => {
-	return rowSafe(puzzleArray, emptyCell, num) && 
-	colSafe(puzzleArray, emptyCell, num) && 
-	boxSafe(puzzleArray, emptyCell, num);
+function columnOf(index) {
+    return index % SIZE;
 }
 
-// get next empty cell
-const nextEmptyCell = puzzleArray => {
-	const emptyCell = {rowIndex: "", colIndex: ""};
-
-	puzzleArray.forEach( (row, rowIndex) => {
-		if (emptyCell.colIndex !== "" ) return;
-
-		let firstZero = row.find( col => col === 0);
-
-		if (firstZero === undefined) return;
-		emptyCell.rowIndex = rowIndex;
-		emptyCell.colIndex = row.indexOf(firstZero);
-	})
-
-	if (emptyCell.colIndex !== "") return emptyCell;
-
-	return false;
+function boxOf(index) {
+    const row = Math.floor(rowOf(index) / BOX_SIZE);
+    const column = Math.floor(columnOf(index) / BOX_SIZE);
+    return row * BOX_SIZE + column;
 }
 
-// generate filled board
-const fillPuzzle = startingBoard => {
-	const emptyCell = nextEmptyCell(startingBoard);
-	if (!emptyCell) return startingBoard;
+const peers = POSITIONS.map(index => POSITIONS.filter(other =>
+    other !== index && (rowOf(index) === rowOf(other)
+        || columnOf(index) === columnOf(other)
+        || boxOf(index) === boxOf(other))
+));
 
-	for (num of shuffle(numArray)) {
-		counter++;
-		if (counter > 20_000_000) throw new Error ("Recursion Timeout");
-
-		if (safeToPlace( startingBoard, emptyCell, num)) {
-			startingBoard[ emptyCell.rowIndex ][ emptyCell.colIndex ] = num;
-
-			if (fillPuzzle(startingBoard)) {return startingBoard;}
-
-			startingBoard[ emptyCell.rowIndex ][ emptyCell.colIndex ] = 0;
-		}
-	}
-	return false;
+function candidatesFor(board, index) {
+    const used = new Set(peers[index].map(other => board[other]));
+    return DIGITS.filter(digit => !used.has(digit));
 }
 
-const newSolvedBoard = _ => {
-	const newBoard = BLANK_BOARD.map(row => row.slice() ); // Create an unaffiliated clone of a fresh board
-	fillPuzzle(newBoard); // Populate the board using backtracking algorithm
-	return newBoard;
+function nextEmptyCell(board) {
+    let best = null;
+
+    // Trying the most constrained square first reduces the search.
+    for (const index of POSITIONS) {
+        if (board[index] !== 0) continue;
+        const candidates = candidatesFor(board, index);
+
+        if (candidates.length === 0) return { index, candidates };
+        if (best === null || candidates.length < best.candidates.length) {
+            best = { index, candidates };
+        }
+    }
+
+    return best;
 }
 
-// generate playable board
-const pokeHoles = (startingBoard, holes) => {
-	const removedVals = [];
-  
-	while (removedVals.length < holes) {
-	  const val = Math.floor(Math.random() * 81); // Value between 0-81
-	  const randomRowIndex = Math.floor(val / 9); // Integer 0-8 for row index
-	  const randomColIndex = val % 9;
-  
-	  if (!startingBoard[ randomRowIndex ]) continue; // guard against cloning error
-	  if ( startingBoard[ randomRowIndex ][ randomColIndex ] == 0 ) continue; // If cell already empty, restart loop
-	  
-	  removedVals.push({  // Store the current value at the coordinates
-		rowIndex: randomRowIndex, 
-		colIndex: randomColIndex, 
-		val: startingBoard[ randomRowIndex ][ randomColIndex ] 
-	  });
-	  startingBoard[ randomRowIndex ][ randomColIndex ] = 0; // "poke a hole" in the board at the coords
-	  const proposedBoard = startingBoard.map ( row => row.slice() ); // Clone this changed board
-	  
-	  // Attempt to solve the board after removing value. If it cannot be solved, restore the old value.
-	  // and remove that option from the list
-	  if ( !fillPuzzle( proposedBoard ) ) {  
-		startingBoard[ randomRowIndex ][ randomColIndex ] = removedVals.pop().val;
-	  }
-	}
-	return [removedVals, startingBoard];
+function fillBoard(board) {
+    const cell = nextEmptyCell(board);
+    if (cell === null) return true;
+
+    for (const digit of shuffle(cell.candidates)) {
+        board[cell.index] = digit;
+        if (fillBoard(board)) return true;
+        board[cell.index] = 0;
+    }
+    return false;
 }
 
-// initalize board
-function newStartingBoard  (holes) {
-	// Reset global iteration counter to 0 and Try to generate a new game. 
-	// If counter reaches its maximum limit in the fillPuzzle function, current attemp will abort
-	try {
-	  counter = 0;
-	  let solvedBoard = newSolvedBoard(); 
-  
-	  // Clone the populated board and poke holes in it. 
-	  // Stored the removed values for clues
-	  let [removedVals, startingBoard] = pokeHoles( solvedBoard.map ( row => row.slice() ), holes);
-  
-	  return [removedVals, startingBoard, solvedBoard];
-	  
-	} catch (error) {
-	  return newStartingBoard(holes);
-	}
+function countSolutions(board, limit = 2) {
+    const cell = nextEmptyCell(board);
+    if (cell === null) return 1;
+
+    let count = 0;
+    for (const digit of cell.candidates) {
+        board[cell.index] = digit;
+        count += countSolutions(board, limit - count);
+        // Restore the input board even when the search stops early.
+        board[cell.index] = 0;
+        if (count >= limit) break;
+    }
+    return count;
 }
 
-function multiplePossibleSolutions (boardToCheck) {
-	const possibleSolutions = [];
-	const emptyCellArray = emptyCellCoords(boardToCheck);
-	for (let index = 0; index < emptyCellArray.length; index++) {
-	  // Rotate a clone of the emptyCellArray by one for each iteration
-	  emptyCellClone = [...emptyCellArray];
-	  const startingPoint = emptyCellClone.splice(index, 1);
-	  emptyCellClone.unshift( startingPoint[0] ) ;
-	  thisSolution = fillFromArray( boardToCheck.map( row => row.slice() ) , emptyCellClone);
-	  possibleSolutions.push( thisSolution.join() );
-	  if (Array.from(new Set(possibleSolutions)).length > 1 ) return true;
-	}
-	return false;
-  }
-  
-  // This will attempt to solve the puzzle by placing values into the board in the order that
-  // the empty cells list presents
-function fillFromArray(startingBoard, emptyCellArray) {
-	const emptyCell = nextStillEmptyCell(startingBoard, emptyCellArray);
-	if (!emptyCell) return startingBoard;
-	for (num of shuffle(numArray) ) {   
-	  pokeCounter++;
-	  if ( pokeCounter > 60_000_000 ) throw new Error ("Poke Timeout");
-	  if ( safeToPlace( startingBoard, emptyCell, num) ) {
-		startingBoard[ emptyCell.rowIndex ][ emptyCell.colIndex ] = num;
-		if ( fillFromArray(startingBoard, emptyCellArray) ) return startingBoard;
-		startingBoard[ emptyCell.rowIndex ][ emptyCell.colIndex ] = 0;
-	  }
-	}
-	return false;
-}
-  
-// As numbers get placed, not all of the initial cells are still empty.
-// This will find the next still empty cell in the list
-function nextStillEmptyCell (startingBoard, emptyCellArray) {
-	for (coords of emptyCellArray) {
-	  if (startingBoard[ coords.row ][ coords.col ] === 0) return {rowIndex: coords.row, colIndex: coords.col};
-	}
-	return false;
-}
-  
-  // Generate array from range, inclusive of start & endbounds.
-const range = (start, end) => {
-	const length = end - start + 1;
-	return Array.from( {length} , ( _ , i) => start + i);
-}
-  
-  // Get a list of all empty cells in the board from top-left to bottom-right
-function emptyCellCoords (startingBoard) {
-	const listOfEmptyCells = [];
-	for (const row of range(0,8)) {
-	  for (const col of range(0,8) ) {
-		if (startingBoard[row][col] === 0 ) listOfEmptyCells.push( {row, col } );
-	  }
-	}
-	return listOfEmptyCells;
-}
+function generatePuzzle(emptyTarget, previousPuzzle) {
+    for (;;) {
+        const solution = Array(SIZE * SIZE).fill(0);
+        fillBoard(solution);
+        const clues = [...solution];
+        let removed = 0;
 
-let mistakeCounter = {value: 0};
-let selectedCell = null;
-let selectedNumber = null; // Initialize with null
+        for (const index of shuffle(POSITIONS)) {
+            clues[index] = 0;
+            if (countSolutions(clues) === 1) {
+                removed++;
+                if (removed === emptyTarget) break;
+            } else {
+                clues[index] = solution[index];
+            }
+        }
 
-// generate the Sudoku board based on difficulty
-function generateSudoku(difficulty) {
-    const [removedVals, startingBoard, solvedBoard] = newStartingBoard(difficulty);
-
-    const boardContainer = document.getElementById('board-container');
-    boardContainer.innerHTML = '';
-
-	const mistakeCounter = {value: 0};
-
-    for (let i = 0; i < 9; i++) {
-		for (let j = 0; j < 9; j++) {
-			const cell = document.createElement('div');
-			cell.classList.add('cell');
-
-			// add border
-			if (i === 2 || i === 5) {
-				cell.classList.add('darker-bottom-border');
-			}
-			if (j === 2 || j === 5) {
-				cell.classList.add('darker-right-border');
-			}
-
-			const value = startingBoard[i][j] !== 0 ? startingBoard[i][j] : '';
-			cell.textContent = value;
-			cell.dataset.row = i;
-			cell.dataset.col = j;
-			cell.contentEditable = startingBoard[i][j] === 0 ? 'true' : 'false'; // Ensure it's a string
-
-			// event listener for input changes from number buttons
-            cell.addEventListener('click', function () {
-				const numberButtons = document.querySelectorAll('#number-buttons button');
-				numberButtons.forEach(button => {
-    				button.addEventListener('click', function() {
-        				selectedNumber = parseInt(this.dataset.number);
-    				});
-				});
-				if (selectedNumber !== null) {
-					fillCell(this, selectedNumber, solvedBoard[i][j], startingBoard[i][j], mistakeCounter);
-				}
-			});
-
-			function fillCell(cell, solvedValue, initialValue, mistakeCounter) {
-				if (cell.contentEditable === 'true' && selectedNumber !== null) {
-					cell.textContent = selectedNumber;
-					checkInput(cell, solvedValue, initialValue, mistakeCounter); // Check input after filling
-					selectedNumber = null; // Reset selectedNumber after filling
-				}
-			}
-
-			// Add an event listener for input changes from elsewhere (keyboard)
-			cell.addEventListener('input', function() {
-				checkInput(this, solvedBoard[i][j], startingBoard[i][j], mistakeCounter);
-			});
-
-			cell.addEventListener('input', function() {
-				checkSolved(this, solvedBoard, startingBoard);	
-			});
-
-			boardContainer.appendChild(cell);
-		}
-	}
-}
-
-function fillCell(cell, number, solvedValue, initialValue, mistakeCounter) {
-    // Check if the cell is editable before filling
-    if (cell.contentEditable === 'true') {
-        cell.textContent = number;
-
-        // Call checkInput to handle mistake counter logic
-        checkInput(cell, solvedValue, initialValue, mistakeCounter);
+        if (removed === emptyTarget && clues.some((digit, index) => digit !== previousPuzzle?.[index])) {
+            return { clues, solution };
+        }
     }
 }
 
+const boardElement = document.getElementById("board-container");
+const difficulty = document.getElementById("difficulty");
+const mistakeCounter = document.getElementById("mistake-counter");
+const gameStatus = document.getElementById("game-status");
+const keypad = document.getElementById("number-buttons");
+const eraseButton = document.getElementById("erase");
+const checkButton = document.getElementById("check-solution");
 
-function checkInput(cell, correctValue, initialValue, mistakeCounter) {
-    const userInput = cell.textContent.trim();
-    
-    if (userInput !== '' && userInput !== correctValue.toString()) {
-        // Incorrect input
-        cell.style.color = 'red';
-        mistakeCounter.value++;
-        updateMistakeCounter(mistakeCounter);
+let game;
+let cells = [];
+
+function selectCell(index, moveFocus = false) {
+    game.selected = index;
+    cells.forEach((cell, position) => {
+        cell.tabIndex = position === index ? 0 : -1;
+        cell.classList.toggle("selected", position === index);
+        cell.classList.toggle("related", peers[index].includes(position));
+    });
+    if (moveFocus) cells[index].focus();
+}
+
+function renderCell(index) {
+    const cell = cells[index];
+    const value = game.board[index];
+    const given = game.clues[index] !== 0;
+    const wrong = value !== 0 && value !== game.solution[index];
+    let description = value === 0 ? "empty" : String(value);
+    if (given) description += ", given";
+    if (wrong) description += ", incorrect";
+
+    cell.textContent = value || "";
+    cell.classList.toggle("incorrect", wrong);
+    cell.setAttribute("aria-label", `Row ${rowOf(index) + 1}, column ${columnOf(index) + 1}: ${description}`);
+}
+
+function startGame(moveFocus = false) {
+    const { clues, solution } = generatePuzzle(EMPTY_COUNTS[difficulty.value], game?.clues);
+    game = { clues, solution, board: [...clues], selected: 0, mistakes: 0, solved: false };
+
+    cells = POSITIONS.map(index => {
+        const cell = document.createElement("button");
+        cell.type = "button";
+        cell.className = "cell";
+        cell.dataset.index = index;
+        cell.classList.toggle("given", clues[index] !== 0);
+        cell.classList.toggle("box-right", [2, 5].includes(columnOf(index)));
+        cell.classList.toggle("box-bottom", [2, 5].includes(rowOf(index)));
+        return cell;
+    });
+    boardElement.replaceChildren(...cells);
+    POSITIONS.forEach(renderCell);
+    selectCell(clues.indexOf(0), moveFocus);
+    mistakeCounter.textContent = "Mistakes: 0";
+    gameStatus.textContent = "";
+    checkButton.disabled = false;
+    eraseButton.disabled = false;
+    for (const button of keypad.querySelectorAll("button")) button.disabled = false;
+}
+
+function checkSolution() {
+    if (game.board.every((value, index) => value === game.solution[index])) {
+        game.solved = true;
+        gameStatus.textContent = "Puzzle solved!";
+        checkButton.disabled = true;
+        eraseButton.disabled = true;
+        for (const button of keypad.querySelectorAll("button")) button.disabled = true;
+        return;
+    }
+
+    if (game.board.some((value, index) => value !== 0 && value !== game.solution[index])) {
+        gameStatus.textContent = "The red entries need another look.";
     } else {
-        // Correct input or empty cell
-        cell.style.color = ''; // Reset color
+        gameStatus.textContent = "All entries are correct so far. Keep going!";
     }
 }
 
-function updateMistakeCounter(mistakeCounter) {
-    const mistakeCounterElement = document.getElementById('mistake-counter');
-    mistakeCounterElement.textContent = `Mistakes: ${mistakeCounter.value}`;
-}
+function enterNumber(value) {
+    const { selected, clues, board, solution } = game;
+    if (game.solved) return;
+    if (clues[selected] !== 0) {
+        gameStatus.textContent = "Choose an empty or editable square.";
+        return;
+    }
+    if (board[selected] === value) return;
 
-// Initialize mistakeCounter
-updateMistakeCounter(mistakeCounter);
+    board[selected] = value;
+    renderCell(selected);
+    gameStatus.textContent = "";
 
-function checkSolved(finBoard, actBoard) {
-	if (finBoard === actBoard) {
-		const finish = prompt("congrats");
-	}
-}
-
-// Function to prompt the user for difficulty and start the game
-function startGame() {
-    const difficulty = prompt("Choose a difficulty level: easy, medium, or hard");
-	
-	let diff = 0;
-	if (difficulty.toLowerCase() == "easy") {
-		diff = 43;
-	} else if (difficulty.toLowerCase() == "medium") {
-		diff = 45;
-	} else if (difficulty.toLowerCase() == "hard") {
-		diff = 49;
-	}
-    
-    if (difficulty && ['easy', 'medium', 'hard'].includes(difficulty.toLowerCase())) {
-        generateSudoku(diff);
-		mistakeCounter = 0;
-    } else {
-        alert("Invalid difficulty level. Please choose easy, medium, or hard.");
-		startGame();
+    if (value !== 0 && value !== solution[selected]) {
+        game.mistakes++;
+        mistakeCounter.textContent = `Mistakes: ${game.mistakes}`;
+    } else if (board.every((digit, index) => digit === solution[index])) {
+        checkSolution();
     }
 }
 
-// Call startGame() initially to prompt the user for difficulty
+boardElement.addEventListener("focusin", event => {
+    const cell = event.target.closest(".cell");
+    if (cell !== null) selectCell(Number(cell.dataset.index));
+});
+
+boardElement.addEventListener("click", event => {
+    const cell = event.target.closest(".cell");
+    if (cell !== null) selectCell(Number(cell.dataset.index), true);
+});
+
+boardElement.addEventListener("keydown", event => {
+    if (event.altKey || event.ctrlKey || event.metaKey) return;
+
+    const row = rowOf(game.selected);
+    const column = columnOf(game.selected);
+    const moves = {
+        ArrowUp: [Math.max(0, row - 1), column],
+        ArrowDown: [Math.min(SIZE - 1, row + 1), column],
+        ArrowLeft: [row, Math.max(0, column - 1)],
+        ArrowRight: [row, Math.min(SIZE - 1, column + 1)],
+    };
+    const move = moves[event.key];
+
+    if (Array.isArray(move)) {
+        event.preventDefault();
+        selectCell(move[0] * SIZE + move[1], true);
+    } else if (/^[1-9]$/.test(event.key)) {
+        event.preventDefault();
+        enterNumber(Number(event.key));
+    } else if (event.key === "Backspace" || event.key === "Delete") {
+        event.preventDefault();
+        enterNumber(0);
+    }
+});
+
+keypad.addEventListener("click", event => {
+    const button = event.target.closest("[data-number]");
+    if (button !== null) enterNumber(Number(button.dataset.number));
+});
+
+eraseButton.addEventListener("click", () => enterNumber(0));
+checkButton.addEventListener("click", checkSolution);
+document.getElementById("new-game").addEventListener("click", () => startGame(true));
+
 startGame();

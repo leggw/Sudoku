@@ -2,34 +2,48 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.cdnfonts.com/css/menlo" rel="stylesheet">
-    <title>Sudoku Game</title>
+    <script src="script.js" defer></script>
+    <title>Sudoku</title>
 </head>
 <body>
-    <div class="container">
-        <h1>Sudoku Game</h1>
-        <div id="mistake-counter">Mistakes: 0</div>
-        <div id="board-container"></div>
-        <div id="number-buttons">
-            <button data-number="1">1</button>
-            <button data-number="2">2</button>
-            <button data-number="3">3</button>
-            <button data-number="4">4</button>
-            <button data-number="5">5</button>
-            <button data-number="6">6</button>
-            <button data-number="7">7</button>
-            <button data-number="8">8</button>
-            <button data-number="9">9</button>
+    <main class="game">
+        <header class="game-header">
+            <h1>Sudoku</h1>
+            <p>Fill every row, column, and 3×3 box with 1–9.</p>
+        </header>
+
+        <div class="toolbar">
+            <label for="difficulty">Difficulty</label>
+            <select id="difficulty">
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+            </select>
+            <button id="new-game" class="primary" type="button">New game</button>
         </div>
-        <button onclick="startGame()">Generate New Game</button>
-        <button onclick="checkSolution()">Check Solution</button>
-    </div>
-    <div class="footer">
-        <p>Game is currently under development by Will Legg</p><br>
-        <p><a href="https://github.com/leggw/Sudoku">GitHub</a></p>
-    </div>
-    <script src="script.js"></script>
+
+        <p id="mistake-counter">Mistakes: 0</p>
+        <div id="board-container" aria-label="Sudoku board" role="group"></div>
+        <div id="number-buttons" aria-label="Enter a number" role="group">
+            <button type="button" data-number="1">1</button>
+            <button type="button" data-number="2">2</button>
+            <button type="button" data-number="3">3</button>
+            <button type="button" data-number="4">4</button>
+            <button type="button" data-number="5">5</button>
+            <button type="button" data-number="6">6</button>
+            <button type="button" data-number="7">7</button>
+            <button type="button" data-number="8">8</button>
+            <button type="button" data-number="9">9</button>
+        </div>
+        <div class="actions">
+            <button id="erase" type="button">Erase</button>
+            <button id="check-solution" type="button">Check solution</button>
+        </div>
+        <p id="game-status" role="status"></p>
+        <p id="controls-hint">Select a square, then type a number or use the keypad. Arrow keys move between squares.</p>
+    </main>
+    <footer>Made by Will Legg · <a href="https://github.com/leggw/Sudoku">GitHub</a></footer>
 </body>
 </html>
